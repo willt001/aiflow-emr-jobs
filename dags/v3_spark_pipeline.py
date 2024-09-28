@@ -1,11 +1,11 @@
 from airflow.decorators import dag, task, task_group
 from airflow.exceptions import AirflowException
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
-from airflow.models import Variable
 from airflow.operators.empty import EmptyOperator
 from datetime import datetime
 import json
 import requests
+from config import JOBS
 
 @dag(start_date=datetime(2024, 9, 1), 
      schedule_interval='@daily', 
@@ -63,8 +63,7 @@ def v3_spark_pipeline():
 
     end = EmptyOperator(task_id='end')
         
-
-    jobs = json.loads(Variable.get('spark_jobs_one_error'))    
+    jobs = json.loads(JOBS)    
 
     get_data_run_job.expand(job=jobs) 
 

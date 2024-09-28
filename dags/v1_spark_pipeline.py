@@ -1,11 +1,10 @@
 from airflow.decorators import dag, task
 from airflow.exceptions import AirflowException
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
-from airflow.models import Variable
-from airflow.operators.empty import EmptyOperator
 from datetime import datetime
 import json
 import requests
+from config import JOBS
 
 @dag(start_date=datetime(2024, 9, 1), 
      schedule_interval='@daily', 
@@ -18,9 +17,8 @@ def v1_spark_pipeline():
 
     @task.python
     def get_jobs():
-        return json.loads(Variable.get('spark_jobs_one_error'))
+        return json.loads(JOBS)
         
-    
     @task.bash
     def make_output_directory(job, ti=None):
         return f'mkdir -p /opt/airflow/output/{ti.dag_id}/{job.get('emr_job_id')}'
@@ -69,9 +67,9 @@ def v1_spark_pipeline():
                                                 aws_conn_id='s3_access',
                                                 replace=True)\
                                              .expand_kwargs(download_json_)
-    run_job_ = run_job.expand(job=get_jobs_)
-    delete_output_directory_ = delete_output_directory.expand(job=get_jobs_)
-    
-    get_jobs_ >> [download_json_, make_output_directory_] >> local_to_s3 >> start_cluster() >> run_job_ >> stop_cluster() >> delete_output_directory_
+
+    get_jobs_ >> [download_json_, make_output_directory_] >> local_to_s3 >> start_cluster() >> run_job.expand(job=get_jobs_) >> stop_cluster()
+
+    local_to_s3 >> delete_output_directory.expand(job=get_jobs_)
 
 v1_spark_pipeline()

@@ -6,3 +6,4 @@ Dockerfile
 /plugins
 /dags/__pycache__
 /dags/examples
+/dags/v4_spark_pipeline.py

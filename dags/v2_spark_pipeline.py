@@ -1,12 +1,10 @@
 from airflow.decorators import dag, task, task_group
-from airflow.utils.task_group import TaskGroup
 from airflow.exceptions import AirflowException
 from airflow.providers.amazon.aws.transfers.local_to_s3 import LocalFilesystemToS3Operator
-from airflow.models import Variable
-from airflow.operators.empty import EmptyOperator
 from datetime import datetime
 import json
 import requests
+from config import JOBS
 
 @dag(start_date=datetime(2024, 9, 1), 
      schedule_interval='@daily', 
@@ -58,16 +56,16 @@ def v2_spark_pipeline():
     def run_spark_jobs(job):
         
         @task
-        def run_job(job):
+        def run_job():
             pass
     
-        run_job(job)
+        run_job()
 
     @task
     def stop_emr_cluster():
         pass
     
-    jobs = json.loads(Variable.get('spark_jobs'))
+    jobs = json.loads(JOBS)
 
     get_data.expand(job=jobs) >> start_emr_cluster() >> run_spark_jobs.expand(job=jobs) >> stop_emr_cluster()
 
