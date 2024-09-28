@@ -25,5 +25,8 @@ This resolves the issue for all the tasks inside the 'get_data' task group. The 
 
 ## v3_spark_pipeline
 This DAG achieves the desired behaviour by putting all of the tasks inside a single task group, except for 'start/stop_emr_cluster', at the cost of a messier DAG though.
+Note: 
+- create_emr_cluster is still an upstream task of run_spark_job.
+- create_emr_cluster uses the 'one_success' trigger rule.
 
 ![v3-pipeline](https://github.com/user-attachments/assets/fe3533d0-7414-4030-aa93-2c7d93e78e3a)
